@@ -15,13 +15,21 @@ const main = async () => {
 
     const io = new Server(httpServer)
 
+    const CHECKBOX_COUNT = 1000;
+
+    const state = {
+        checkboxes: Array(CHECKBOX_COUNT).fill(false)
+    }
+
     //SocketIO Handlers
     io.on("connection", (socket) => {
         console.log(`A user connected ${socket.id}`)
 
         socket.on("client:checkbox:change", (data) => {
             console.log(`Checkbox changed by ${socket.id}:`, data);
-            io.emit("server:checkbox:change", data)
+            const index = parseInt(data.id.split('-')[1]);
+            state.checkboxes[index] = data.checked;
+            io.emit("server:checkbox:change", data);
         })
     })
 
@@ -32,6 +40,10 @@ const main = async () => {
 
     app.get('/health', (req, res) => {
         res.json({ healthy: true })
+    })
+
+    app.get('/checkboxes', (req, res) => {
+        res.json({checkboxes: state.checkboxes})
     })
 
     httpServer.listen(port, () => console.log(`Server running on  http://localhost:${port}`))
