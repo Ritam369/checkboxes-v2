@@ -4,6 +4,7 @@ import path from 'node:path'
 import express from 'express'
 import { Server } from 'socket.io'
 import 'dotenv/config'
+import { publisher, subscriber } from './redis-connection.js'
 
 //websockets can't be directly used by express server
 //to have websockets, we need node:http server
@@ -22,14 +23,27 @@ const main = async () => {
     }
 
     //SocketIO Handlers
+
+    await subscriber.subscribe("internal-server:checkbox:change");
+
+    subscriber.on("message", (channel, message) => {
+        if(channel === "internal-server:checkbox:change"){
+            const {id, checked} = JSON.parse(message);
+            const index = parseInt(id.split('-')[1]);
+            state.checkboxes[index] = checked;
+            io.emit("server:checkbox:change", {id, checked});
+        }
+    });
+
     io.on("connection", (socket) => {
         console.log(`A user connected ${socket.id}`)
 
-        socket.on("client:checkbox:change", (data) => {
+        socket.on("client:checkbox:change", async (data) => {
             console.log(`Checkbox changed by ${socket.id}:`, data);
             const index = parseInt(data.id.split('-')[1]);
-            state.checkboxes[index] = data.checked;
-            io.emit("server:checkbox:change", data);
+            // state.checkboxes[index] = data.checked;
+            // io.emit("server:checkbox:change", data);
+            await publisher.publish("internal-server:checkbox:change", JSON.stringify(data));
         })
     })
 
