@@ -169,6 +169,7 @@
     async function fetchStateFromServer() {
       try {
         while(container.firstChild) {
+          // this is given because we want to clear the unsaved states that happened after the elapsed time of rate-limiter from the container before adding new checkboxes
           container.removeChild(container.firstChild);
         }
 
@@ -189,7 +190,7 @@
     }
 
     window.addEventListener("load", async () => {
-      await fetchStateFromServer();
+      await fetchStateFromServer(); //for every refresh or any new socket or any new server at first, data will be fetched
 
       container.addEventListener("change", (e) => {
         if (e.target.type === "checkbox") {

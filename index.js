@@ -16,8 +16,6 @@ const main = async () => {
 
   const io = new Server(httpServer);
 
-  const ratelimitHashmap = new Map()
-
   const CHECKBOX_COUNT = 1000;
   const CHECKBOX_STATE_KEY = "checkbox-state";
 
@@ -45,7 +43,7 @@ const main = async () => {
     socket.on("client:checkbox:change", async (data) => {
       console.log(`Checkbox changed by ${socket.id}:`, data);
 
-      const lastOperationTime = await readwriteRedis.get(`last-operation-time:${socket.id}`);
+      const lastOperationTime = await readwriteRedis.get(`last-operation-time:${socket.id}`); //Using read-write channel, we can get last-operation-time of a particular socket or set it using the key
 
       if(lastOperationTime){
         const timeElapsed = Date.now() - lastOperationTime;
@@ -58,7 +56,7 @@ const main = async () => {
       }
       await readwriteRedis.set(`last-operation-time:${socket.id}`, Date.now());
 
-      const existingState = await readwriteRedis.get(CHECKBOX_STATE_KEY);
+      const existingState = await readwriteRedis.get(CHECKBOX_STATE_KEY); //using read-write channel, we can get the existing states or set states of checkboxes based on the key
 
       if (existingState) {
         const remoteData = JSON.parse(existingState);
@@ -93,7 +91,7 @@ const main = async () => {
 
   app.get("/checkboxes", async (req, res) => {
     const existingState = await readwriteRedis.get(CHECKBOX_STATE_KEY);
-    if (existingState) {
+    if (existingState) { //If any checkbox state changed
       const remoteData = JSON.parse(existingState);
       res.json({ checkboxes: remoteData });
     } else {
