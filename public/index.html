@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>1million checkboxes</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
 
     <style>
       :root {
@@ -117,7 +120,11 @@
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 14px;
         padding: 12px 14px;
-        background: linear-gradient(180deg, rgba(17, 17, 17, 0.98), rgba(24, 24, 24, 0.98)) !important;
+        background: linear-gradient(
+          180deg,
+          rgba(17, 17, 17, 0.98),
+          rgba(24, 24, 24, 0.98)
+        ) !important;
         color: var(--text) !important;
         box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
         backdrop-filter: blur(12px);
@@ -159,8 +166,12 @@
     const container = document.getElementById("container");
     const CHECKBOX_COUNT = 1000;
 
-    window.addEventListener("load", async () => {
+    async function fetchStateFromServer() {
       try {
+        while(container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+
         const response = await fetch("/checkboxes", { method: "GET" });
         const { checkboxes } = await response.json();
         if (checkboxes) {
@@ -168,31 +179,34 @@
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
             checkbox.id = `checkbox-${i}`;
-            if (checkbox) {
-              checkbox.checked = checked;
-            }
+            checkbox.checked = checked;
             container.appendChild(checkbox);
           });
         }
-          container.addEventListener("change", (e) => {
-            if (e.target.type === "checkbox") {
-              socket.emit("client:checkbox:change", {
-                id: e.target.id,
-                checked: e.target.checked,
-              });
-              console.log(
-                `Checkbox changed:` +
-                  JSON.stringify({
-                    id: e.target.id,
-                    checked: e.target.checked,
-                  }),
-              );
-            }
-          });
-        
       } catch (error) {
         console.error("Error fetching checkbox states:", error);
       }
+    }
+
+    window.addEventListener("load", async () => {
+      await fetchStateFromServer();
+
+      container.addEventListener("change", (e) => {
+        if (e.target.type === "checkbox") {
+          socket.emit("client:checkbox:change", {
+            id: e.target.id,
+            checked: e.target.checked,
+          });
+          fetchStateFromServer();
+          console.log(
+            `Checkbox changed:` +
+              JSON.stringify({
+                id: e.target.id,
+                checked: e.target.checked,
+              }),
+          );
+        }
+      });
     });
 
     socket.on("server:checkbox:change", (data) => {
@@ -216,6 +230,5 @@
         className: "toastify",
       }).showToast();
     });
-
   </script>
 </html>
