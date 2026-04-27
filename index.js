@@ -16,6 +16,8 @@ const main = async () => {
 
   const io = new Server(httpServer);
 
+  const ratelimitHashmap = new Map()
+
   const CHECKBOX_COUNT = 1000;
   const CHECKBOX_STATE_KEY = "checkbox-state";
 
@@ -42,6 +44,19 @@ const main = async () => {
 
     socket.on("client:checkbox:change", async (data) => {
       console.log(`Checkbox changed by ${socket.id}:`, data);
+
+      const lastOperationTime = ratelimitHashmap.get(socket.id);
+
+      if(lastOperationTime){
+        const timeElapsed = Date.now() - lastOperationTime;
+        if(timeElapsed < 1000){
+            io.to(socket.id).emit("server:error:rate-limit", {
+                error: `Please wait 1 second before changing another checkbox`
+            });
+            return;
+        }
+      }
+      ratelimitHashmap.set(socket.id, Date.now());
 
       const existingState = await readwriteRedis.get(CHECKBOX_STATE_KEY);
 

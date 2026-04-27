@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>1million checkboxes</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
     <style>
       :root {
@@ -112,6 +113,28 @@
         outline-offset: 2px;
       }
 
+      .toastify {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 12px 14px;
+        background: linear-gradient(180deg, rgba(17, 17, 17, 0.98), rgba(24, 24, 24, 0.98)) !important;
+        color: var(--text) !important;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
+        backdrop-filter: blur(12px);
+        font-family: inherit;
+      }
+
+      .toastify .toast-close {
+        color: rgba(237, 237, 237, 0.72);
+        opacity: 1;
+        text-shadow: none;
+        font-weight: 400;
+      }
+
+      .toastify .toast-close:hover {
+        color: var(--text);
+      }
+
       @media (max-width: 640px) {
         body {
           padding: 28px 16px 40px;
@@ -129,6 +152,7 @@
     <h1 style="text-align: center">1 Million Checkboxes</h1>
     <div id="container"></div>
   </body>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
@@ -176,6 +200,21 @@
       if (checkbox) {
         checkbox.checked = data.checked;
       }
+    });
+
+    socket.on("server:error:rate-limit", (data) => {
+      const errorMessage =
+        data?.error || "Too many updates right now. Please wait a moment.";
+
+      Toastify({
+        text: errorMessage,
+        duration: 3500,
+        gravity: "top",
+        position: "right",
+        close: true,
+        stopOnFocus: true,
+        className: "toastify",
+      }).showToast();
     });
 
   </script>
