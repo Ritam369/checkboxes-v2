@@ -7,6 +7,7 @@ const createChannel = () => {
   });
 };
 
+export const readwriteRedis = createChannel();
 
 export const publisher = createChannel();
 

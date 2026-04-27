@@ -149,7 +149,7 @@
             }
             container.appendChild(checkbox);
           });
-
+        }
           container.addEventListener("change", (e) => {
             if (e.target.type === "checkbox") {
               socket.emit("client:checkbox:change", {
@@ -165,7 +165,7 @@
               );
             }
           });
-        }
+        
       } catch (error) {
         console.error("Error fetching checkbox states:", error);
       }
